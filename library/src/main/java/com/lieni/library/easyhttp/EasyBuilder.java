@@ -21,6 +21,7 @@ public class EasyBuilder {
     private boolean cache=false;
     private boolean cookie=true;
     private boolean loadCookie=false;
+    private boolean log=true;
 
     public EasyBuilder(Application application, String baseUrl) {
         this.application = application;
@@ -106,6 +107,14 @@ public class EasyBuilder {
     public EasyBuilder setLoadCookie(boolean loadCookie) {
         this.loadCookie = loadCookie;
         return this;
+    }
+
+    public boolean isLog() {
+        return log;
+    }
+
+    public void setLog(boolean log) {
+        this.log = log;
     }
 
     public Converter.Factory getConvertFactory() {

@@ -27,8 +27,8 @@ public class EasyHttp {
         okHttpBuilder.readTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
         .writeTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
         .connectTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
-        .cookieJar(new CookieHelper(builder.getApplication(),builder.isLoadCookie()))
-        .addNetworkInterceptor(new HttpLoggingInterceptor(new HttpLogger()).setLevel(HttpLoggingInterceptor.Level.BODY));
+        .cookieJar(new CookieHelper(builder.getApplication(),builder.isLoadCookie()));
+
         //拦截器
         for (Interceptor interceptor:builder.getInterceptors()){
             okHttpBuilder.addInterceptor(interceptor);
@@ -36,6 +36,10 @@ public class EasyHttp {
         //请求头
         if(builder.getHeaders().size()>0){
             okHttpBuilder.addInterceptor(new HeaderInterceptor(builder.getHeaders()));
+        }
+        //日志
+        if(builder.isLog()){
+            okHttpBuilder.addNetworkInterceptor(new HttpLoggingInterceptor(new HttpLogger()).setLevel(HttpLoggingInterceptor.Level.BODY));
         }
         OkHttpClient client=okHttpBuilder.build();
 
@@ -57,7 +61,7 @@ public class EasyHttp {
         }
         return instance;
     }
-    public static  <T> T create(final Class<T> service){
+    public static  <T> T create(Class<T> service){
         return getInstance().retrofit.create(service);
     }
 }
