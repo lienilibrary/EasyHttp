@@ -1,7 +1,5 @@
 package com.lieni.library.easyhttp.interceptor;
 
-import android.content.Intent;
-
 
 import org.jetbrains.annotations.NotNull;
 
@@ -15,8 +13,9 @@ import okhttp3.internal.http2.Header;
 
 public class HeaderInterceptor implements Interceptor {
     private List<Header> headers;
+
     public HeaderInterceptor(List<Header> headers) {
-        this.headers=headers;
+        this.headers = headers;
     }
 
     @NotNull
@@ -24,9 +23,9 @@ public class HeaderInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request original = chain.request();
         Request.Builder requestBuilder = original.newBuilder();
-        if(headers!=null){
-            for (Header header:headers){
-                requestBuilder.addHeader(header.name.toString(),header.value.toString());
+        if (headers != null) {
+            for (Header header : headers) {
+                requestBuilder.header(header.name.toString(), header.value.toString());
             }
         }
         return chain.proceed(requestBuilder.build());
