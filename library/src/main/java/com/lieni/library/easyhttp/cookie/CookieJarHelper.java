@@ -25,14 +25,18 @@ import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 
-public class CookieHelper implements CookieJar {
+public class CookieJarHelper implements CookieJar {
     private SetCookieCache cache;
     private SharedPrefsCookiePersist persist;
 
-    public CookieHelper(Context context,boolean load) {
+    public CookieJarHelper(Context context, boolean load) {
         this.cache = new SetCookieCache();
         this.persist = new SharedPrefsCookiePersist(context);
         if(load) this.cache.addAll(persist.loadAll());
+    }
+
+    public CookieJarHelper(Context context){
+        this(context,true);
     }
 
     @Override

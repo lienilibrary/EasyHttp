@@ -1,10 +1,14 @@
 package com.lieni.library.easyhttp;
 
-import android.app.Application;
+import android.content.Context;
+
+import com.lieni.library.easyhttp.cookie.CookieJarHelper;
+import com.lieni.library.easyhttp.interceptor.CodeInterceptor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.CookieJar;
 import okhttp3.Interceptor;
 import okhttp3.internal.http2.Header;
 import retrofit2.Converter;
@@ -13,18 +17,15 @@ public class EasyBuilder {
     private int readTimeout=60000;
     private int writeTimeout=60000;
     private int connectTimeout=60000;
-    private Application application;
-    private String baseUrl;
-    private List<Interceptor> interceptors=new ArrayList<>();
-    private List<Header> headers=new ArrayList<>();
+    private final String baseUrl;
+    private final List<Interceptor> interceptors=new ArrayList<>();
+    private final List<Header> headers=new ArrayList<>();
     private Converter.Factory convertFactory;
     private boolean cache=false;
-    private boolean cookie=true;
-    private boolean loadCookie=false;
+    private CookieJar cookieJar;
     private boolean log=true;
 
-    public EasyBuilder(Application application, String baseUrl) {
-        this.application = application;
+    public EasyBuilder(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
@@ -65,6 +66,11 @@ public class EasyBuilder {
         return this;
     }
 
+    public EasyBuilder addCodeInterceptor(CodeInterceptor interceptor){
+        this.interceptors.add(interceptor);
+        return this;
+    }
+
     public EasyBuilder addHeader(String key,String value) {
         this.headers.add(new Header(key,value));
         return this;
@@ -87,26 +93,22 @@ public class EasyBuilder {
         return this;
     }
 
-    public boolean isCookie() {
-        return cookie;
+    public EasyBuilder setCookieJar(CookieJar cookieJar) {
+        this.cookieJar = cookieJar;
+        return this;
     }
 
-    public EasyBuilder setCookie(boolean cookie) {
-        this.cookie = cookie;
+    public CookieJar getCookieJar() {
+        return cookieJar;
+    }
+
+    public EasyBuilder enableCookie(Context context, boolean load){
+        this.cookieJar=new CookieJarHelper(context,load);
         return this;
     }
 
     public String getBaseUrl() {
         return baseUrl;
-    }
-
-    public boolean isLoadCookie() {
-        return loadCookie;
-    }
-
-    public EasyBuilder setLoadCookie(boolean loadCookie) {
-        this.loadCookie = loadCookie;
-        return this;
     }
 
     public boolean isLog() {
@@ -124,10 +126,6 @@ public class EasyBuilder {
     public EasyBuilder setConvertFactory(Converter.Factory convertFactory) {
         this.convertFactory = convertFactory;
         return this;
-    }
-
-    public Application getApplication() {
-        return application;
     }
 
 

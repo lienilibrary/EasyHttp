@@ -1,11 +1,11 @@
 package com.lieni.library.easyhttp;
 
 
-import com.lieni.library.easyhttp.cookie.CookieHelper;
 import com.lieni.library.easyhttp.interceptor.HeaderInterceptor;
 import com.lieni.library.easyhttp.logger.HttpLogger;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
@@ -15,22 +15,22 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class EasyHttp {
-    private LinkedHashMap<Class,Object> apiCache=new LinkedHashMap<>();
+    private final LinkedHashMap<String, Object> apiCache = new LinkedHashMap<>();
     private volatile static EasyHttp instance;
     private static EasyBuilder builder;
-    private Retrofit retrofit;
-
-    public static void init(EasyBuilder easyBuilder) {
-        builder = easyBuilder;
-    }
+    private final Retrofit retrofit;
+    private static final int max = 10;
 
     private EasyHttp() {
         OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
         okHttpBuilder.readTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
                 .writeTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
-                .connectTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS)
-                .cookieJar(new CookieHelper(builder.getApplication(), builder.isLoadCookie()));
+                .connectTimeout(builder.getReadTimeout(), TimeUnit.MILLISECONDS);
 
+        //cookie缓存
+        if (builder.getCookieJar() != null) {
+            okHttpBuilder.cookieJar(builder.getCookieJar());
+        }
         //拦截器
         for (Interceptor interceptor : builder.getInterceptors()) {
             okHttpBuilder.addInterceptor(interceptor);
@@ -65,14 +65,33 @@ public class EasyHttp {
         return instance;
     }
 
-    public static <T> T create(Class<T> service) {
-        if(getInstance().apiCache.containsKey(service)){
-            return (T)getInstance().apiCache.get(service);
-        }else {
-            T t=getInstance().retrofit.create(service);
-            getInstance().apiCache.put(service,t);
+    private <T> T get(Class<T> service) {
+        if (apiCache.containsKey(service.getName())) {
+            return (T) apiCache.get(service.getName());
+        } else {
+            T t = retrofit.create(service);
+            apiCache.put(service.getName(), t);
+            afterApiInsert();
             return t;
         }
+    }
+
+    private synchronized void afterApiInsert() {
+        if (apiCache.size() > max) {
+            int index = 0;
+            for (Map.Entry<String, Object> api : apiCache.entrySet()) {
+                index++;
+                if (index > max) apiCache.remove(api.getKey());
+            }
+        }
+    }
+
+    public static void init(EasyBuilder easyBuilder) {
+        builder = easyBuilder;
+    }
+
+    public static <T> T create(Class<T> service) {
+        return getInstance().get(service);
     }
 
 

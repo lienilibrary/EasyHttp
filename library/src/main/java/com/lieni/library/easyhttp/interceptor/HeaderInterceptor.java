@@ -12,7 +12,7 @@ import okhttp3.Response;
 import okhttp3.internal.http2.Header;
 
 public class HeaderInterceptor implements Interceptor {
-    private List<Header> headers;
+    private final List<Header> headers;
 
     public HeaderInterceptor(List<Header> headers) {
         this.headers = headers;
